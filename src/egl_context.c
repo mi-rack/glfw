@@ -290,6 +290,7 @@ static void destroyContextEGL(_GLFWwindow* window)
     }
 }
 
+#if defined(_GLFW_DRM)
 static void *weston_platform_get_egl_proc_address(const char *address)
 {
   const char *extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
@@ -319,6 +320,7 @@ static EGLDisplay weston_platform_get_egl_display(EGLenum platform, void *native
 
   return eglGetDisplay((EGLNativeDisplayType) native_display);
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
