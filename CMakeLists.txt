@@ -147,6 +147,9 @@ elseif (GLFW_USE_MIR)
 elseif (GLFW_USE_OSMESA)
     set(_GLFW_OSMESA 1)
     message(STATUS "Using OSMesa for headless context creation")
+elseif (GLFW_USE_DRM)
+    set(_GLFW_DRM 1)
+    message(STATUS "Using KMS/DRM+libinput")
 elseif (WIN32)
     set(_GLFW_WIN32 1)
     message(STATUS "Using Win32 for window creation")
@@ -306,6 +309,22 @@ endif()
 if (_GLFW_OSMESA)
     find_package(OSMesa REQUIRED)
     list(APPEND glfw_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+endif()
+
+#--------------------------------------------------------------------
+# Use DRM+evdev
+#--------------------------------------------------------------------
+if (_GLFW_DRM)
+    include (FindPkgConfig)
+
+    pkg_check_modules (DRM libdrm)
+    pkg_check_modules (GBM gbm)
+    pkg_check_modules (EGL egl)
+    pkg_check_modules (INPUT libinput)
+    #pkg_check_modules (GLESV2 glesv2)
+
+    list(APPEND glfw_INCLUDE_DIRS ${DRM_INCLUDE_DIRS} ${GBM_INCLUDE_DIRS} ${EGL_INCLUDE_DIRS} ${GLESV2_INCLUDE_DIRS} ${INPUT_INCLUDE_DIRS})
+    list(APPEND glfw_LIBRARIES ${LIBS} ${DRM_LIBRARIES} ${GBM_LIBRARIES} ${EGL_LIBRARIES} ${INPUT_LIBRARIES})
 endif()
 
 #--------------------------------------------------------------------

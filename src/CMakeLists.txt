@@ -63,6 +63,11 @@ elseif (_GLFW_OSMESA)
                      posix_time.h posix_thread.h osmesa_context.h)
     set(glfw_SOURCES ${common_SOURCES} null_init.c null_monitor.c null_window.c
                      null_joystick.c posix_time.c posix_thread.c osmesa_context.c)
+elseif (_GLFW_DRM)
+    set(glfw_HEADERS ${common_HEADERS} drm_platform.h 
+                     egl_context.h osmesa_context.h null_joystick.h posix_thread.h posix_time.h)
+    set(glfw_SOURCES ${common_SOURCES} egl_context.c osmesa_context.c
+                     drm_window.c drm_monitor.c null_joystick.c drm_init.c posix_thread.c posix_time.c)
 endif()
 
 if (_GLFW_X11 OR _GLFW_WAYLAND)

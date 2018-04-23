@@ -192,6 +192,8 @@ typedef void (APIENTRY * PFN_vkVoidFunction)(void);
  #include "mir_platform.h"
 #elif defined(_GLFW_OSMESA)
  #include "null_platform.h"
+#elif defined(_GLFW_DRM)
+ #include "drm_platform.h"
 #else
  #error "No supported window creation API selected"
 #endif

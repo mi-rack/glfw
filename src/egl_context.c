@@ -290,6 +290,35 @@ static void destroyContextEGL(_GLFWwindow* window)
     }
 }
 
+static void *weston_platform_get_egl_proc_address(const char *address)
+{
+  const char *extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+
+  if (extensions /*&&
+      (weston_check_egl_extension(extensions, "EGL_EXT_platform_wayland") ||
+       weston_check_egl_extension(extensions, "EGL_KHR_platform_wayland"))*/) {
+    return (void *) eglGetProcAddress(address);
+  }
+
+  return NULL;
+}
+
+static EGLDisplay weston_platform_get_egl_display(EGLenum platform, void *native_display, const EGLint *attrib_list)
+{
+  static PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display = NULL;
+
+  if (!get_platform_display) {
+    get_platform_display = (PFNEGLGETPLATFORMDISPLAYEXTPROC)
+            weston_platform_get_egl_proc_address(
+                "eglGetPlatformDisplayEXT");
+  }
+
+  if (get_platform_display)
+    return get_platform_display(platform,
+              native_display, attrib_list);
+
+  return eglGetDisplay((EGLNativeDisplayType) native_display);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
@@ -392,7 +421,12 @@ GLFWbool _glfwInitEGL(void)
         return GLFW_FALSE;
     }
 
+#if defined(_GLFW_DRM)
+    _glfw.egl.display = weston_platform_get_egl_display(EGL_PLATFORM_GBM_KHR, _GLFW_EGL_NATIVE_DISPLAY, NULL);
+#else
     _glfw.egl.display = eglGetDisplay(_GLFW_EGL_NATIVE_DISPLAY);
+#endif
+
     if (_glfw.egl.display == EGL_NO_DISPLAY)
     {
         _glfwInputError(GLFW_API_UNAVAILABLE,
@@ -597,6 +631,9 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
         setAttrib(EGL_NONE, EGL_NONE);
     }
 
+#if defined(_GLFW_DRM)
+    window->context.egl.surface = EGL_NO_SURFACE;
+#else
     window->context.egl.surface =
         eglCreateWindowSurface(_glfw.egl.display,
                                config,
@@ -609,6 +646,7 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
                         getEGLErrorString(eglGetError()));
         return GLFW_FALSE;
     }
+#endif
 
     window->context.egl.config = config;
 
